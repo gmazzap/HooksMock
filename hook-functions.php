@@ -54,3 +54,11 @@ if ( ! function_exists( 'apply_filters' ) ) {
     }
 
 }
+
+if ( ! function_exists( 'did_action' ) ) {
+
+    function did_action() {
+        return Brain\HooksMock\HooksMock::hasActionFired( func_get_args() );
+    }
+
+}

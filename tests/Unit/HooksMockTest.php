@@ -240,6 +240,22 @@ class HooksMockTest extends \PHPUnit_Framework_TestCase {
     /**
      * @expectedException \InvalidArgumentException
      */
+    function testHasHookFiredIfBadHook() {
+        HooksMock::hasHookFired( 'action', TRUE );
+    }
+
+    function testHasHookFired() {
+        do_action( 'hook1', 'foo', [ 'foo', 'bar' ], TRUE );
+        apply_filters( 'hook2', 'foo', [ 'foo', 'bar' ], TRUE );
+        assertTrue( HooksMock::hasHookFired( 'action', 'hook1' ) );
+        assertFalse( HooksMock::hasHookFired( 'action', 'hook2' ) );
+        assertTrue( HooksMock::hasHookFired( 'filter', 'hook2' ) );
+        assertFalse( HooksMock::hasHookFired( 'filter', 'hook1' ) );
+    }
+
+    /**
+     * @expectedException \InvalidArgumentException
+     */
     public function testAssertHookAddedIfBadHook() {
         HooksMock::assertHookAdded( 'action', TRUE );
     }

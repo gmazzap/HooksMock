@@ -143,6 +143,43 @@ class HooksMock {
     }
 
     /**
+     * Check if an hook is was fired.
+     *
+     * @param string $type Type of hook, 'action' or 'filter'
+     * @param string $hook Filter hook to check
+     * @return boolean
+     */
+    public static function hasHookFired( $type = 'action', $hook = NULL ) {
+        if ( ! in_array( $type, [ 'action', 'filter' ], TRUE ) ) $type = 'action';
+        $target = $type === 'filter' ? 'filters' : 'actions';
+        if ( empty( $hook ) || ! is_string( $hook ) ) {
+            $msg = __METHOD__ . ' needs a valid hook to check.';
+            throw new \InvalidArgumentException( $msg );
+        }
+        return array_key_exists( $hook, static::$hooks_done[$target] );
+    }
+
+    /**
+     * Check if an action hook is was fired.
+     *
+     * @param string $hook Filter hook to check
+     * @return boolean
+     */
+    public static function hasActionFired( $hook = NULL ) {
+        return static::hasHookFired( 'action', $hook );
+    }
+
+    /**
+     * Check if a filter hook is was fired.
+     *
+     * @param string $hook Filter hook to check
+     * @return boolean
+     */
+    public static function hasFilterFired( $hook = NULL ) {
+        return static::hasHookFired( 'filter', $hook );
+    }
+
+    /**
      * Check if an action is added and throws a exceptions otherwise.
      *
      * @param string $hook Action hook to check
