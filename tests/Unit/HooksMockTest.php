@@ -10,21 +10,21 @@ class HooksMockTest extends \PHPUnit_Framework_TestCase {
     }
 
     /**
-     * @expectedException \Brain\HooksMock\HookException
+     * @expectedException \InvalidArgumentException
      */
     public function testAddHookFailsIfEmptyHook() {
         add_action();
     }
 
     /**
-     * @expectedException \Brain\HooksMock\HookException
+     * @expectedException \InvalidArgumentException
      */
     public function testAddHookFailsIfBadHook() {
         add_action( TRUE );
     }
 
     /**
-     * @expectedException \Brain\HooksMock\HookException
+     * @expectedException \InvalidArgumentException
      */
     public function testAddHookFailsIfBadCallback() {
         add_action( 'foo', 'this_callback_does_not_exists', 20, 3 );
@@ -89,21 +89,21 @@ class HooksMockTest extends \PHPUnit_Framework_TestCase {
     }
 
     /**
-     * @expectedException \Brain\HooksMock\HookException
+     * @expectedException \InvalidArgumentException
      */
     public function testRemoveHookFailsIfEmptyHook() {
         remove_action();
     }
 
     /**
-     * @expectedException \Brain\HooksMock\HookException
+     * @expectedException \InvalidArgumentException
      */
     public function testRemoveHookFailsIfBadHook() {
         remove_action( TRUE );
     }
 
     /**
-     * @expectedException \Brain\HooksMock\HookException
+     * @expectedException \InvalidArgumentException
      */
     public function testRemoveHookFailsIfBadCallback() {
         remove_action( 'foo', 'this_callback_does_not_exists', 20, 3 );
@@ -123,14 +123,14 @@ class HooksMockTest extends \PHPUnit_Framework_TestCase {
     }
 
     /**
-     * @expectedException \Brain\HooksMock\HookException
+     * @expectedException \InvalidArgumentException
      */
     public function testFireHookFailsIfEmptyHook() {
         do_action();
     }
 
     /**
-     * @expectedException \Brain\HooksMock\HookException
+     * @expectedException \InvalidArgumentException
      */
     public function testFireHookFailsIfBadHook() {
         apply_filters( TRUE );
@@ -181,7 +181,7 @@ class HooksMockTest extends \PHPUnit_Framework_TestCase {
     }
 
     /**
-     * @expectedException \Brain\HooksMock\HookException
+     * @expectedException \InvalidArgumentException
      */
     public function testCallbackUniqueIdFailsIfBadCallback() {
         HooksMock::callbackUniqueId( 'foo' );
@@ -201,21 +201,21 @@ class HooksMockTest extends \PHPUnit_Framework_TestCase {
     }
 
     /**
-     * @expectedException \Brain\HooksMock\HookException
+     * @expectedException \InvalidArgumentException
      */
     public function testHasHookFailsIfBadHook() {
         HooksMock::hasHook( 'action', TRUE );
     }
 
     /**
-     * @expectedException \Brain\HooksMock\HookException
+     * @expectedException \InvalidArgumentException
      */
     public function testHasHookFailsIfBadCallable() {
         HooksMock::hasHook( 'action', 'foo', 'foo' );
     }
 
     /**
-     * @expectedException \Brain\HooksMock\HookException
+     * @expectedException \InvalidArgumentException
      */
     public function testHasHookFailsIfBadPriority() {
         HooksMock::hasHook( 'action', 'foo', '__return_false', 'foo' );

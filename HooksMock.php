@@ -19,7 +19,7 @@ class HooksMock {
      *
      * @param string $type Type of the hook, 'action' or 'filter'
      * @param array $args Arguments passed to add_action() or add_filter()
-     * @throws Brain\Striatum\Tests\HookException
+     * @throws \InvalidArgumentException
      * @return void
      */
     public static function addHook( $type = '', Array $args = [ ] ) {
@@ -28,13 +28,13 @@ class HooksMock {
         $hook = array_shift( $args );
         if ( empty( $hook ) || ! is_string( $hook ) ) {
             $msg = ' Error on adding ' . $type . ': invalid hook';
-            throw new HookException( $msg );
+            throw new \InvalidArgumentException( $msg );
         }
         $cb = array_shift( $args );
         if ( ! is_callable( $cb ) ) {
             $msg = ' Error on adding ' . $type . ': given callback for the hook ' . $hook
                 . ' is not a valid callback.';
-            throw new HookException( $msg );
+            throw new \InvalidArgumentException( $msg );
         }
         $priority = array_shift( $args ) ? : 10;
         $num_args = array_shift( $args ) ? : 1;
@@ -53,7 +53,7 @@ class HooksMock {
      *
      * @param string $type Type of the hook, 'action' or 'filter'
      * @param array $args Arguments passed to remove_action() or remove_filter()
-     * @throws Brain\Striatum\Tests\HookException
+     * @throws \InvalidArgumentException
      * @return void
      */
     public static function removeHook( $type = '', Array $args = [ ] ) {
@@ -62,13 +62,13 @@ class HooksMock {
         $hook = array_shift( $args );
         if ( empty( $hook ) || ! is_string( $hook ) ) {
             $msg = ' Error on removing ' . $type . ': invalid hook';
-            throw new HookException( $msg );
+            throw new \InvalidArgumentException( $msg );
         }
         $cb = array_shift( $args );
         if ( ! is_callable( $cb ) ) {
             $msg = ' Error on removing ' . $type . ': given callback for the hook ' . $hook
                 . ' is not a valid callback.';
-            throw new HookException( $msg );
+            throw new \InvalidArgumentException( $msg );
         }
         $id = static::callbackUniqueId( $cb );
         $priority = array_shift( $args ) ? : 10;
@@ -94,7 +94,7 @@ class HooksMock {
      *
      * @param string $type Type of the hook, 'action' or 'filter'
      * @param array $args Arguments passed to do_action() or apply_filters()
-     * @throws Brain\Striatum\Tests\HookException
+     * @throws \InvalidArgumentException
      * @return array 3 items array, 1st is the type, 2nd the hook fired, 3rd the arguments
      */
     public static function fireHook( $type = '', $args = [ ] ) {
@@ -102,13 +102,13 @@ class HooksMock {
         $target = $type === 'filter' ? 'filters' : 'actions';
         if ( empty( $args ) || ! is_array( $args ) ) {
             $msg = ' Error on adding ' . $type . ': invalid arguments.';
-            throw new HookException( $msg );
+            throw new \InvalidArgumentException( $msg );
         }
         $args = array_values( $args );
         $hook = array_shift( $args );
         if ( empty( $hook ) || ! is_string( $hook ) ) {
             $msg = ' Error on adding ' . $type . ': invalid hook';
-            throw new HookException( $msg );
+            throw new \InvalidArgumentException( $msg );
         }
         static::$hooks_done[$target][$hook][] = $args;
         return [ $type, $hook, $args ];
@@ -121,7 +121,6 @@ class HooksMock {
      * @param callable $callback Callback to check
      * @param int $priority Priority to check
      * @return boolean
-     * @throws HookException
      * @uses Brain\Striatum\Tests\HooksMock::hasHook()
      */
     public static function hasAction( $hook = '', $callback = NULL, $priority = NULL ) {
@@ -135,7 +134,6 @@ class HooksMock {
      * @param callable $callback Callback to check
      * @param int $priority Priority to check
      * @return boolean
-     * @throws HookException
      * @uses Brain\Striatum\Tests\HooksMock::hasHook()
      */
     public static function hasFilter( $hook = '', $callback = NULL, $priority = NULL ) {
@@ -233,12 +231,12 @@ class HooksMock {
      * Equivalent to _wp_filter_build_unique_id() generate an unique id for a given callback
      *
      * @param callable $callback Callback to generate the unique id from
-     * @throws Brain\Striatum\Tests\HookException
+     * @throws \InvalidArgumentException
      */
     public static function callbackUniqueId( $callback = NULL ) {
         if ( ! is_callable( $callback ) ) {
             $msg = 'Use a valid callback with ' . __METHOD__ . '.';
-            throw new HookException( $msg );
+            throw new \InvalidArgumentException( $msg );
         }
         if ( is_string( $callback ) ) return $callback;
         if ( is_object( $callback ) ) {
@@ -259,23 +257,23 @@ class HooksMock {
      * @param callable $cb Callback to check
      * @param int $pri Priority to check
      * @return boolean
-     * @throws HookException
+     * @throws \InvalidArgumentException
      */
     public static function hasHook( $type = '', $hook = '', $cb = NULL, $pri = NULL ) {
         if ( ! in_array( $type, [ 'action', 'filter' ], TRUE ) ) $type = 'action';
         $target = $type === 'filter' ? 'filters' : 'actions';
         if ( empty( $hook ) || ! is_string( $hook ) ) {
             $msg = ' Error on checking ' . $type . ': invalid hook';
-            throw new HookException( $msg );
+            throw new \InvalidArgumentException( $msg );
         }
         $id = "{$hook} {$type}";
         if ( ! is_null( $cb ) && ! is_callable( $cb ) ) {
             $msg = ' Error on checking ' . $id . ': the one given is not a valid callback.';
-            throw new HookException( $msg );
+            throw new \InvalidArgumentException( $msg );
         }
         if ( ! is_null( $pri ) && ( ! is_numeric( $pri ) || (int) $pri < 0 ) ) {
             $msg = ' Error on checking ' . $id . ': the one given is not a valid prioriry.';
-            throw new HookException( $msg );
+            throw new \InvalidArgumentException( $msg );
         }
         if ( ! array_key_exists( $hook, static::$hooks[$target] ) ) return FALSE;
         if ( is_null( $cb ) ) return TRUE;
@@ -300,6 +298,7 @@ class HooksMock {
      * @param int $p Priority to check
      * @param int $n Number of accepted arguments to check
      * @throws Brain\Striatum\Tests\HookException
+     * @throws \InvalidArgumentException
      * @access protected
      */
     public static function assertHookAdded( $t = '', $h = '', $cb = NULL, $p = NULL, $n = NULL ) {
@@ -352,6 +351,7 @@ class HooksMock {
      * @param string $hook Filter hook to check
      * @param callable $args Arguments to check
      * @throws Brain\Striatum\Tests\HookException
+     * @throws \InvalidArgumentException
      * @access protected
      */
     public static function assertHookFired( $type = 'action', $hook = NULL, $args = NULL ) {
