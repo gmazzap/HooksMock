@@ -13,23 +13,26 @@
         "issues": "https://github.com/Giuseppe-Mazzapica/HooksMock/issues",
         "source": "https://github.com/Giuseppe-Mazzapica/HooksMock"
     },
-    "license": "GPL-2.0+",
+    "license": "MIT",
     "require": {
         "php": ">=5.4",
-        "phpunit/phpunit": "3.7.*"
+        "phpunit/phpunit": "~4.4"
     },
     "conflict": {
         "10up/wp_mock": "*"
     },
     "autoload": {
-        "files": ["hook-functions.php", "assert-functions.php"],
+        "files": [
+            "inc/hook-functions.php",
+            "inc/assert-functions.php"
+        ],
         "psr-4": {
-            "Brain\\HooksMock\\": ""
+            "Brain\\HooksMock\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Brain\\HooksMock\\Tests\\": "tests/"
+            "Brain\\HooksMock\\Tests\\": "tests/unit"
         }
     },
     "config": {
