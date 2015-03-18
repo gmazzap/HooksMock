@@ -65,3 +65,10 @@ if (! function_exists('did_action')) {
         return HooksMock::hasActionFired(func_get_args());
     }
 }
+
+if ( ! function_exists('has_action')) {
+    function has_action()
+    {
+        return call_user_func_array(['Brain\HooksMock\HooksMock', 'hasAction'], func_get_args());
+    }
+}
