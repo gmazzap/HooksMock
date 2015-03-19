@@ -19,8 +19,8 @@ use InvalidArgumentException;
  */
 class HooksMock
 {
-    static $hooks = ['actions' => [], 'filters' => []];
-    static $hooks_done = ['actions' => [], 'filters' => []];
+    public static $hooks = ['actions' => [], 'filters' => []];
+    public static $hooks_done = ['actions' => [], 'filters' => []];
 
     /**
      * Reset static arrays
@@ -44,28 +44,28 @@ class HooksMock
         if (! in_array($type, ['action', 'filter'], true)) {
             $type = 'action';
         }
-        $target = $type === 'filter' ? 'filters' : 'actions';
+        $var = $type === 'filter' ? 'filters' : 'actions';
         $hook = array_shift($args);
         if (empty($hook) || ! is_string($hook)) {
             $msg = ' Error on adding '.$type.': invalid hook';
             throw new InvalidArgumentException($msg);
         }
-        $cb = array_shift($args);
-        if (! is_callable($cb)) {
+        $callback = array_shift($args);
+        if (! is_callable($callback)) {
             $msg = ' Error on adding '.$type.': given callback for the hook '.$hook
                 .' is not a valid callback.';
             throw new InvalidArgumentException($msg);
         }
-        $priority = array_shift($args) ?: 10;
-        $num_args = array_shift($args) ?: 1;
-        if (! isset(HooksMock::$hooks[$target][$hook])) {
-            static::$hooks[$target][$hook] = [];
+        $priority = empty($args) ? 10 : array_shift($args);
+        $numArgs = empty($args) ? 1 : array_shift($args);
+        if (! isset(HooksMock::$hooks[$var][$hook])) {
+            static::$hooks[$var][$hook] = [];
         }
-        if (! isset(static::$hooks[$target][$hook][$priority])) {
-            static::$hooks[$target][$hook][$priority] = [];
+        if (! isset(static::$hooks[$var][$hook][$priority])) {
+            static::$hooks[$var][$hook][$priority] = [];
         }
-        $id = static::callbackUniqueId($cb);
-        static::$hooks[$target][$hook][$priority][$id] = ['cb' => $cb, 'num_args' => $num_args];
+        $id = static::callbackUniqueId($callback);
+        static::$hooks[$var][$hook][$priority][$id] = ['cb' => $callback, 'num_args' => $numArgs];
     }
 
     /**
@@ -87,15 +87,15 @@ class HooksMock
             $msg = ' Error on removing '.$type.': invalid hook';
             throw new InvalidArgumentException($msg);
         }
-        $cb = array_shift($args);
-        if (! is_callable($cb)) {
+        $callback = array_shift($args);
+        if (! is_callable($callback)) {
             $msg = ' Error on removing '.$type.': given callback for the hook '.$hook
                 .' is not a valid callback.';
             throw new InvalidArgumentException($msg);
         }
-        $id = static::callbackUniqueId($cb);
+        $id = static::callbackUniqueId($callback);
         $priority = array_shift($args) ?: 10;
-        $num_args = ! empty($args) ? array_shift($args) : -1;
+        $argsNum = ! empty($args) ? array_shift($args) : -1;
         if (! array_key_exists($hook, HooksMock::$hooks[$target])) {
             return;
         }
@@ -105,7 +105,7 @@ class HooksMock
         if (array_key_exists($id, HooksMock::$hooks[$target][$hook][$priority])) {
             $data = HooksMock::$hooks[$target][$hook][$priority][$id];
             $data['num_args'] = isset($data['num_args']) ? (int) $data['num_args'] : 1;
-            if ((int) $num_args > 0 && $data['num_args'] !== (int) $num_args) {
+            if ((int) $argsNum > 0 && $data['num_args'] !== (int) $argsNum) {
                 return;
             }
             unset(HooksMock::$hooks[$target][$hook][$priority][$id]);
@@ -220,14 +220,18 @@ class HooksMock
     /**
      * Check if an action is added and throws a exceptions otherwise.
      *
-     * @param string   $hook   Action hook to check
-     * @param callable $cb     Callback to check
-     * @param int      $pri    Priority to check
-     * @param int      $n_args Number of accepted arguments to check
+     * @param string   $hook     Action hook to check
+     * @param callable $callback Callback to check
+     * @param int      $priority Priority to check
+     * @param int      $argsNum  Number of accepted arguments to check
      */
-    public static function assertActionAdded($hook = '', $cb = null, $pri = null, $n_args = null)
-    {
-        static::assertHookAdded('action', $hook, $cb, $pri, $n_args);
+    public static function assertActionAdded(
+        $hook = '',
+        $callback = null,
+        $priority = null,
+        $argsNum = null
+    ) {
+        static::assertHookAdded('action', $hook, $callback, $priority, $argsNum);
     }
 
     /**
@@ -321,7 +325,7 @@ class HooksMock
             throw new InvalidArgumentException($msg);
         }
         if (! is_null($priority) && (! is_numeric($priority) || (int) $priority < 0)) {
-            $msg = ' Error on checking '.$id.': the one given is not a valid prioriry.';
+            $msg = ' Error on checking '.$id.': the one given is not a valid priority.';
             throw new InvalidArgumentException($msg);
         }
         if (! array_key_exists($hook, static::$hooks[$target])) {
@@ -349,62 +353,66 @@ class HooksMock
     }
 
     /**
-     * @param  string                    $t  Type of hook, 'action' or 'filter'
-     * @param  string                    $h  Action hook to check
-     * @param  callable                  $cb Callback to check
-     * @param  int                       $p  Priority to check
-     * @param  int                       $n  Number of accepted arguments to check
+     * @param  string                    $type     Type of hook, 'action' or 'filter'
+     * @param  string                    $hook     Action hook to check
+     * @param  callable                  $callback Callback to check
+     * @param  int                       $priority Priority to check
+     * @param  int                       $numArgs  Number of accepted arguments to check
      * @throws \InvalidArgumentException
      * @access protected
      */
-    public static function assertHookAdded($t = '', $h = '', $cb = null, $p = null, $n = null)
-    {
-        if (! in_array($t, ['action', 'filter'], true)) {
-            $t = 'action';
+    public static function assertHookAdded(
+        $type = '',
+        $hook = '',
+        $callback = null,
+        $priority = null,
+        $numArgs = null
+    ) {
+        if (! in_array($type, ['action', 'filter'], true)) {
+            $type = 'action';
         }
-        $target = $t === 'filter' ? 'filters' : 'actions';
-        if (empty($h) || ! is_string($h)) {
+        $target = $type === 'filter' ? 'filters' : 'actions';
+        if (empty($hook) || ! is_string($hook)) {
             $msg = __METHOD__.' needs a valid hook to check.';
             throw new InvalidArgumentException($msg);
         }
-        $id = "{$h} {$t}";
-        if (! is_callable($cb, true)) {
+        $id = "{$hook} {$type}";
+        if (! is_callable($callback, true)) {
             $msg = 'Use a valid callback to check for '.$id.'.';
             throw new InvalidArgumentException($msg);
         }
-        if (! array_key_exists($h, static::$hooks[$target])) {
-            $msg = $h.'is not a valid '.$t.' added.';
+        if (! array_key_exists($hook, static::$hooks[$target])) {
+            $msg = $hook.'is not a valid '.$type.' added.';
             throw new HookException($msg);
         }
-        $hooks = static::$hooks[$target][$h];
-        if (! is_null($p) && ! is_numeric($p)) {
-            $msg = $p.'Not numeric priority to check for '.$id;
+        $hooks = static::$hooks[$target][$hook];
+        if (! is_null($priority) && ! is_numeric($priority)) {
+            $msg = $priority.'Not numeric priority to check for '.$id;
             throw new InvalidArgumentException($msg);
         }
-        if (! is_null($n) && ! is_numeric($n)) {
-            $msg = $n.'Not numeric accepted args num to check for '.$id;
+        if (! is_null($numArgs) && ! is_numeric($numArgs)) {
+            $msg = $numArgs.'Not numeric accepted args num to check for '.$id;
             throw new HookException($msg);
         }
-        $priority = (int) $p ?: 10;
-        $num_args = (int) $n ?: 1;
+        $priority = (int) $priority ?: 10;
         if (! isset($hooks[$priority])) {
             $msg = 'Non valid priority '.$priority.' for '.$id;
-            if (is_null($p)) {
+            if (is_null($priority)) {
                 $msg = '. Be sure to pass exact priority to '.__METHOD__;
             }
             throw new HookException($msg);
         }
-        $callbackId = static::callbackUniqueId($cb);
+        $callbackId = static::callbackUniqueId($callback);
         if (! array_key_exists($callbackId, (array) $hooks[$priority])) {
-            $msg = $n.'Wrong callback for '.$id.' at priority '.$priority;
+            $msg = $numArgs.'Wrong callback for '.$id.' at priority '.$priority;
             throw new HookException($msg);
         }
-        if (is_null($n)) {
+        if (is_null($numArgs)) {
             return;
         }
-        $set_num_args = isset($hooks[$priority][$callbackId]['num_args']);
-        if (! $set_num_args || $num_args !== (int) $hooks[$priority][$callbackId]['num_args']) {
-            $msg = $num_args.' is a wrong accepted args num for given callback on the '.$id;
+        $argsNumSet = isset($hooks[$priority][$callbackId]['num_args']);
+        if (! $argsNumSet || (int) $numArgs !== (int) $hooks[$priority][$callbackId]['num_args']) {
+            $msg = $numArgs.' is a wrong accepted args num for given callback on the '.$id;
             throw new HookException($msg);
         }
     }
